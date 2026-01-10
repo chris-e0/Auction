@@ -1,0 +1,101 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="container">
+        <div class="listing-card">
+            <h2>{{ listing.title }}</h2>
+            
+            {% if listing.image_url %}
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}">
+            {% endif %}
+            
+            <p>{{ listing.description }}</p>
+            <p class="price">${{ current_price }}</p>
+            <p class="small-text">Listed by: {{ listing.creator.username }}</p>
+
+            {% if not listing.active %}
+                <p class="status-closed">This auction is closed.</p>
+                {% if listing.winner %}
+                    {% if user == listing.winner %}
+                        <p style="color: #27ae60; font-weight: bold;">🎉 Congratulations! You won this auction!</p>
+                    {% else %}
+                        <p>Winner: {{ listing.winner.username }}</p>
+                    {% endif %}
+                {% else %}
+                    <p>No bids were placed on this listing.</p>
+                {% endif %}
+            {% endif %}
+
+            <!-- Bidding form -->
+            {% if user.is_authenticated and listing.active and user != listing.creator %}
+                <form method="post" style="margin-top: 20px;">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="number" step="0.01" name="bid_amount" class="form-control" placeholder="Enter your bid" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Place Bid</button>
+                </form>
+            {% endif %}
+
+            {% if user.is_authenticated and listing.active and user == listing.creator %}
+                <p class="small-text">You can't bid on your own listing</p>
+            {% endif %}
+
+            <!-- Watchlist button -->
+            {% if user.is_authenticated %}
+                <form method="post" style="margin-top: 15px;">
+                    {% csrf_token %}
+                    <button type="submit" name="toggle_watchlist" class="btn btn-success">
+                        {% if listing in user.watchlist.all %}
+                            Remove from Watchlist
+                        {% else %}
+                            Add to Watchlist
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+
+            <!-- Close auction button -->
+            {% if user == listing.creator and listing.active %}
+                <form method="post" style="margin-top: 15px;" onsubmit="return confirm('Are you sure? This action cannot be undone.')">
+                    {% csrf_token %}
+                    <button type="submit" name="close_auction" class="btn btn-danger">
+                        Close Auction
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- Comments section -->
+        <div class="listing-card" style="margin-top: 30px;">
+            <h3>Comments</h3>
+            
+            {% if user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <textarea name="comment_text" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                </form>
+            {% endif %}
+
+            <div style="margin-top: 20px;">
+                <a href="?order=newest" style="margin-right: 10px;">Newest first</a> | 
+                <a href="?order=oldest">Oldest first</a>
+            </div>
+
+            <div style="margin-top: 20px;">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <strong>{{ comment.commenter.username }}</strong>: {{ comment.comment }}
+                        <br>
+                        <small>{{ comment.comment_time|date:"M d, Y g:i A" }}</small>
+                    </div>
+                {% empty %}
+                    <p class="small-text">No comments yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

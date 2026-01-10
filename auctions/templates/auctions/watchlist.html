@@ -1,0 +1,45 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h2>Your Watchlist</h2>
+
+    {% if listings %}
+        {% for listing in listings %}
+            <div class="listing-card">
+                <h3>
+                    <a href="{% url 'listing' listing.id %}">
+                        {{ listing.title }}
+                        {% if listing.has_updates %}
+                            <span class="badge-new">NEW</span>
+                        {% endif %}
+                    </a>
+                </h3>
+                
+                {% if listing.image_url %}
+                    <img src="{{ listing.image_url }}" alt="{{ listing.title }}">
+                {% endif %}
+                
+                <p>{{ listing.description }}</p>
+                <p class="price">${{ listing.current_price }}</p>
+                
+                {% if listing.active %}
+                    <p class="status-active">Active</p>
+                {% else %}
+                    <p class="status-closed">Closed</p>
+                    {% if listing.winner %}
+                        <p class="small-text">Winner: {{ listing.winner.username }}</p>
+                    {% endif %}
+                {% endif %}
+                
+                <p class="small-text">Last updated: {{ listing.last_updated|date:"M d, Y g:i A" }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="listing-card">
+            <p>You have no items in your watchlist.</p>
+            <a href="{% url 'index' %}" class="btn btn-primary">Browse Listings</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

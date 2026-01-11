@@ -106,9 +106,12 @@ def listing_page(request, listing_id):
 
     
     if bids.exists():
-        current_price = bids.order_by('-amount').first().amount
+        highest_bid = bids.order_by('-amount').first()
+        current_price = highest_bid.amount
+        last_bidder = highest_bid.bidder  
     else:
         current_price = listing.starting_bid
+        last_bidder = None  
 
     if request.method == "POST":
         # -------- BIDDING --------
@@ -197,10 +200,10 @@ def listing_page(request, listing_id):
     return render(request, "auctions/listing_page.html", {
         "listing": listing,
         "current_price": current_price,
+        "last_bidder": last_bidder,
         "comments": comments
     })
 
-@login_required
 @login_required
 def watchlist(request):
     listings = request.user.watchlist.all().order_by('-active', '-last_updated')  # Active first, then by update time
@@ -210,9 +213,12 @@ def watchlist(request):
         # Add current_price
         bids = listing.bids.all()
         if bids.exists():
-            listing.current_price = bids.order_by('-amount').first().amount
+            highest_bid = bids.order_by('-amount').first()
+            listing.current_price = highest_bid.amount
+            listing.last_bidder = highest_bid.bidder
         else:
             listing.current_price = listing.starting_bid
+            listing.last_bidder = None
         
         # Check if there are updates since last view
         try:
@@ -247,7 +253,7 @@ def category_listings(request, category_name):
         "listings": listings
     })
 
-@login_required
+
 @login_required
 def my_listings(request):
     listings = Listing.objects.filter(creator=request.user).order_by('-active', '-last_updated')
@@ -258,9 +264,12 @@ def my_listings(request):
         # Add current_price
         bids = listing.bids.all()
         if bids.exists():
-            listing.current_price = bids.order_by('-amount').first().amount
+            highest_bid = bids.order_by('-amount').first()
+            listing.current_price = highest_bid.amount
+            listing.last_bidder = highest_bid.bidder  
         else:
             listing.current_price = listing.starting_bid
+            listing.last_bidder = None 
         
         # Check if there are updates since last view
         try:

@@ -24,6 +24,14 @@
                 <p class="price">${{ listing.current_price }}</p>
                 
                 {% if listing.active %}
+                    {% if listing.last_bidder %}
+                        <p class="small-text">Last bidder: {{ listing.last_bidder.username }}</p>
+                    {% else %}
+                        <p class="small-text">No bids yet</p>
+                    {% endif %}
+                {% endif %}
+
+                {% if listing.active %}
                     <p class="status-active">Active</p>
                 {% else %}
                     <p class="status-closed">Closed</p>
